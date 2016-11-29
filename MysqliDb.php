@@ -611,6 +611,43 @@ class MysqliDb
 
         return $res;
     }
+    
+    /**
+     * Function to get a preview raw-SQL before excecute.
+     *
+     * @param string  $tableName The name of the database table to work with.
+     * @param int|array $numRows Array to define SQL limit in format Array ($count, $offset)
+     *                               or only $count
+     * @param string $columns Desired columns
+     *
+     * @return string
+     *
+     * @author flaviolaino https://github.com/flaviolaino
+     */
+    public function previewSql($tableName, $numRows = null, $columns = '*')
+    {
+        if (empty($columns)) {
+            $columns = '*';
+        }
+
+        $column = is_array($columns) ? implode(', ', $columns) : $columns;
+
+        if (strpos($tableName, '.') === false) {
+            $this->_tableName = self::$prefix . $tableName;
+        } else {
+            $this->_tableName = $tableName;
+        }
+
+        $this->_query = 'SELECT ' . implode(' ', $this->_queryOptions) . ' ' .
+            $column . " FROM " . $this->_tableName;
+        $stmt = $this->_buildQuery($numRows);
+
+        if ($this->isSubQuery) {
+            return $this;
+        }
+
+        return $this->_lastQuery;
+    }
 
     /**
      * A convenient SELECT * function to get one record.
